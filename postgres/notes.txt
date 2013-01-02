@@ -1,0 +1,97 @@
+As root, install postgresql-contrib
+
+sudo -u postgres psql postgres
+postgres=# create database book with owner ericm;
+postgres=# grant all privileges on database book to ericm;
+To make the extensions:
+sudo -u postgres psql book -c "CREATE EXTENSION cube"
+sudo -u postgres psql book -c "CREATE EXTENSION tablefunc"
+sudo -u postgres psql book -c "CREATE EXTENSION dict_xsyn"
+sudo -u postgres psql book -c "CREATE EXTENSION fuzzystrmatch"
+sudo -u postgres psql book -c "CREATE EXTENSION pg_trgm"
+
+I can run this as myself: 
+psql book -c "SELECT '1'::cube;"
+
+And do this to get to the db:
+psql book
+
+CREATE TABLE countries (
+  country_code char(2) PRIMARY KEY,
+  country_name text UNIQUE
+);
+
+This gives the output:
+NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index "countries_pkey" for table "countries"
+NOTICE:  CREATE TABLE / UNIQUE will create implicit index "countries_country_name_key" for table "countries"
+CREATE TABLE
+
+INSERT INTO countries (country_code, country_name)
+VALUES ('us','United States'), ('mx','Mexico'), ('au','Australia'),
+('gb','United Kingdom'), ('de','Germany'), ('ll','Loompaland');
+
+The output for that was:
+INSERT 0 6
+(I inserted 6 rows. What is the "?")
+
+SELECT * FROM countries;
+DELETE FROM countries WHERE country_code = 'll';
+The output for that was
+DELETE 1
+
+CREATE TABLE cities (
+  name text NOT NULL,
+  postal_code varchar(9) CHECK (postal_code <> ''),
+  country_code char(2) REFERENCES countries,
+  PRIMARY KEY (country_code, postal_code)
+);
+
+book=> CREATE TABLE cities (
+book(>   name text NOT NULL,
+book(>   postal_code varchar(9) CHECK (postal_code <> ''),
+book(>   country_code char(2) REFERENCES countries,
+book(>   PRIMARY KEY (country_code, postal_code)
+book(> );
+NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index "cities_pkey" for table "cities"
+CREATE TABLE
+book=> \h
+book=> INSERT INTO cities
+book-> VALUES ('Toronto','M4C1B5','ca');
+ERROR:  insert or update on table "cities" violates foreign key constraint "cities_country_code_fkey"
+DETAIL:  Key (country_code)=(ca) is not present in table "countries".
+
+book=> UPDATE cities
+book-> SET postal_code = '97205'
+book-> WHERE name = 'Portland';
+UPDATE 1
+
+SELECT cities.*, country_name
+FROM cities INNER JOIN countries
+ON cities.country_code = countries.country_code;
+
+Here is a new one:
+CREATE TABLE venues (
+  venue_id SERIAL PRIMARY KEY,
+  name varchar(255),
+  street_address text,
+  type char(7) CHECK ( type in ('public','private') ) DEFAULT 'public',
+  postal_code varchar(9),
+  country_code char(2),
+  FOREIGN KEY (country_code, postal_code)
+  REFERENCES cities (country_code, postal_code) MATCH FULL
+);
+NOTICE:  CREATE TABLE will create implicit sequence "venues_venue_id_seq" for serial column "venues.venue_id"
+NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index "venues_pkey" for table "venues"
+CREATE TABLE
+
+The check constraint is like an enum in MySQL. It must be one of the values provided. Is that in PostGres or one of the extensions?
+Actually, look up "CHECK"
+
+INSERT INTO venues (name, postal_code, country_code)
+VALUES ('Crystal Ballroom', '97205', 'us');
+
+SELECT v.venue_id, v.name, c.name
+FROM venues v INNER JOIN cities c
+ON v.postal_code=c.postal_code AND v.country_code=c.country_code;
+
+#- EOF
