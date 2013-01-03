@@ -94,4 +94,59 @@ SELECT v.venue_id, v.name, c.name
 FROM venues v INNER JOIN cities c
 ON v.postal_code=c.postal_code AND v.country_code=c.country_code;
 
+INSERT INTO venues (name, postal_code, country_code)
+VALUES ('Voodoo Donuts', '97205', 'us') RETURNING venue_id;
+
+In MySQL, you would do "desc table venues"
+In Postgres, it's "\d+ venues"
+
+CREATE TABLE events (
+  event_id SERIAL PRIMARY KEY,
+  title varchar(255),
+  starts timestamp, 
+  ends timestamp,
+  venue_id integer REFERENCES venues
+  
+);
+
+book=> CREATE TABLE events (
+book(>   event_id SERIAL PRIMARY KEY,
+book(>   title varchar(255),
+book(>   starts timestamp,
+book(>   ends timestamp,
+book(>   venue_id integer REFERENCES venues
+book(> 
+book(> );
+NOTICE:  CREATE TABLE will create implicit sequence "events_event_id_seq" for serial column "events.event_id"
+NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index "events_pkey" for table "events"
+CREATE TABLE
+
+
+insert into events (title, starts, ends, venue_id)
+values ('LARP Club', '2012-02-15 17:30', '2012-02-15 19:30', 2);
+insert into events (title, starts, ends)
+values ('April Fools Day', '2012-04-01 00:00', '2012-04-01 23:59');
+insert into events (title, starts, ends)
+values ('Christmas Day', '2012-12-25 00:00', '2012-12-25 23:59');
+
+SELECT e.title, v.name
+FROM events e JOIN venues v
+ON e.venue_id = v.venue_id;
+
+(same as inner join)
+
+SELECT e.title, v.name
+FROM events e LEFT JOIN venues v
+ON e.venue_id = v.venue_id;
+
+Using the "unique" keyword when creating a field also creates an index
+
+You can also do this:
+CREATE INDEX events_title
+ON events USING hash (title);
+
+Index for less-than, greater-than, equal-to, use b-tree
+CREATE INDEX events_starts
+ON events USING btree (starts);
+
 #- EOF
