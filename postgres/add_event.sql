@@ -1,4 +1,4 @@
--- from the book "Seven Databases in Seven Days"
+-- from the book "Seven Databases in Seven Weeks"
 CREATE OR REPLACE FUNCTION add_event( title text, starts timestamp,
 ends timestamp, venue text, postal varchar(9), country char(2) )
 RETURNS boolean AS $$

@@ -1,3 +1,4 @@
+-- from the book "Seven Databases in Seven Weeks"
 CREATE OR REPLACE FUNCTION log_event() RETURNS trigger AS $$
 DECLARE
 BEGIN
