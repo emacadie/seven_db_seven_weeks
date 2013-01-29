@@ -149,4 +149,65 @@ Index for less-than, greater-than, equal-to, use b-tree
 CREATE INDEX events_starts
 ON events USING btree (starts);
 
+The pg_class query to get the tables:
+select * from pg_class where relnamespace = 2200 and not(relfrozenxid = 0);
+
+alter table venues add column active boolean default true
+
+select events.title, venues.country_code from events inner join venues on events.venue_id = venues.venue_id;
+----
+Day 2
+
+INSERT INTO events (title, starts, ends, venue_id)
+VALUES ('Moby', '2012-02-06 21:00', '2012-02-06 23:00', (
+SELECT venue_id
+FROM venues
+WHERE name = 'Crystal Ballroom'
+)
+);
+
+INSERT INTO events (title, starts, ends, venue_id)
+values ('Wedding', '2012-02-26 21:00:00', '2012-02-26 23:00:00', 
+(select venue_id from venues where name = 'Voodoo Donuts')),
+('Dinner with Mom', '2012-02-26 18:00:00', '2012-02-26 20:30:00',
+(select venue_id from venues where name = 'My Place')),
+('Valentine''s Day', '2012-02-14 00:00:00', '2012-02-14 23:59:00', null);
+
+SELECT count(title)
+FROM events
+WHERE title LIKE '%Day%';
+
+SELECT min(starts), max(ends)
+FROM events INNER JOIN venues
+ON events.venue_id = venues.venue_id
+WHERE venues.name = 'Crystal Ballroom';
+
+SELECT venue_id, count(*)
+FROM events
+GROUP BY venue_id;
+
+SELECT venue_id
+FROM events
+GROUP BY venue_id
+HAVING count(*) >= 2 AND venue_id IS NOT NULL;
+
+SELECT venue_id FROM events GROUP BY venue_id;
+
+SELECT DISTINCT venue_id FROM events;
+
+SELECT title, count(*) OVER (PARTITION BY venue_id) FROM events;
+Not quite getting Window functions
+
+BEGIN TRANSACTION;
+DELETE FROM events;
+ROLLBACK;
+SELECT * FROM events;
+
+BEGIN TRANSACTION;
+UPDATE account SET total=total+5000.0 WHERE account_id=1337;
+UPDATE account SET total=total-5000.0 WHERE account_id=45887;
+END;
+
+
+
 #- EOF

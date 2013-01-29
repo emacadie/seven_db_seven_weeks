@@ -1,0 +1,34 @@
+                   Table "pg_catalog.pg_class"
+     Column     |   Type    | Modifiers | Storage  | Description 
+----------------+-----------+-----------+----------+-------------
+ relname        | name      | not null  | plain    | 
+ relnamespace   | oid       | not null  | plain    | 
+ reltype        | oid       | not null  | plain    | 
+ reloftype      | oid       | not null  | plain    | 
+ relowner       | oid       | not null  | plain    | 
+ relam          | oid       | not null  | plain    | 
+ relfilenode    | oid       | not null  | plain    | 
+ reltablespace  | oid       | not null  | plain    | 
+ relpages       | integer   | not null  | plain    | 
+ reltuples      | real      | not null  | plain    | 
+ reltoastrelid  | oid       | not null  | plain    | 
+ reltoastidxid  | oid       | not null  | plain    | 
+ relhasindex    | boolean   | not null  | plain    | 
+ relisshared    | boolean   | not null  | plain    | 
+ relpersistence | "char"    | not null  | plain    | 
+ relkind        | "char"    | not null  | plain    | 
+ relnatts       | smallint  | not null  | plain    | 
+ relchecks      | smallint  | not null  | plain    | 
+ relhasoids     | boolean   | not null  | plain    | 
+ relhaspkey     | boolean   | not null  | plain    | 
+ relhasrules    | boolean   | not null  | plain    | 
+ relhastriggers | boolean   | not null  | plain    | 
+ relhassubclass | boolean   | not null  | plain    | 
+ relfrozenxid   | xid       | not null  | plain    | 
+ relacl         | aclitem[] |           | extended | 
+ reloptions     | text[]    |           | extended | 
+Indexes:
+    "pg_class_oid_index" UNIQUE, btree (oid)
+    "pg_class_relname_nsp_index" UNIQUE, btree (relname, relnamespace)
+Has OIDs: yes
+
