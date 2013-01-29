@@ -208,6 +208,24 @@ UPDATE account SET total=total+5000.0 WHERE account_id=1337;
 UPDATE account SET total=total-5000.0 WHERE account_id=45887;
 END;
 
+look at the file add_event.sql
+SELECT add_event('House Party', '2012-05-03 23:00',
+'2012-05-04 02:00', 'Run''s House', '97205', 'us');
+
+Run this command outside the db:
+createlang book --list
+
+CREATE TABLE logs (
+event_id integer,
+old_title varchar(255),
+old_starts timestamp,
+old_ends timestamp,
+logged_at timestamp DEFAULT current_timestamp
+);
+
+CREATE TRIGGER log_events
+AFTER UPDATE ON events
+FOR EACH ROW EXECUTE PROCEDURE log_event();
 
 
 #- EOF
