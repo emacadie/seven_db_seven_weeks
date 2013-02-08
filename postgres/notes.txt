@@ -87,6 +87,8 @@ CREATE TABLE
 The check constraint is like an enum in MySQL. It must be one of the values provided. Is that in PostGres or one of the extensions?
 Actually, look up "CHECK"
 
+"SERIAL" is like "integer auto increment" in MySQL
+
 INSERT INTO venues (name, postal_code, country_code)
 VALUES ('Crystal Ballroom', '97205', 'us');
 
@@ -307,5 +309,110 @@ set active=false
 where name = old.name;
 
 Left off page 34
+-----------------------------------------------
+psql --host=localhost --port=5432 --username=ericm --dbname=book --file=create_movies.sql
+psql --host=localhost --port=5432 --username=ericm --dbname=book --file=movies_data.sql
+
+Postgres has ilike which is case-insensitive like
+
+SELECT title FROM movies WHERE title ILIKE 'stardust%';
+
+~ starts reg ex, and ! negates. * is case-insensitivity
+SELECT COUNT(*) FROM movies WHERE title !~* '^the.*';
+
+CREATE INDEX movies_title_pattern ON movies (lower(title) text_pattern_ops);
+*pattern_ops creates an index that is really good at searching regular expressions
+text, varchar, a few others
+
+SELECT levenshtein('bat', 'fads');
+levenshtein calculates how many changes are needed to transform one string into another.
+
+SELECT levenshtein('bat', 'fad') fad,
+levenshtein('bat', 'fat') fat,
+levenshtein('bat', 'bat') bat;
+
+SELECT movie_id, title FROM movies
+WHERE levenshtein(lower(title), lower('a hard day nght')) <= 3;
+
+Break a string into as many 3-character combos as you can. These are called trigrams.
+book=> SELECT show_trgm('Avatar');
+              show_trgm              
+-------------------------------------
+ {"  a"," av","ar ",ata,ava,tar,vat}
+(1 row)
+
+We’ll create a trigram index against movie names to start (we use Generalized
+Index Search Tree [GIST], a generic index API made available by the PostgreSQL
+engine).
+CREATE INDEX movies_title_trigram ON movies
+USING gist (title gist_trgm_ops);
+
+SELECT *
+FROM movies
+WHERE title % 'Avatre';
+I guess % can substitute for like
+
+No, it doesn't always work.
+
+Here is another operator:
+SELECT title
+FROM movies
+WHERE title @@ 'night & day';
+
+"@@" is a full-text query operator
+
+Some of their queries did not work:
+book-> WHERE to_tsvector(title) @@ to_tsquery('english', 'night &amp; day');
+ERROR:  syntax error in tsquery: "night &amp; day"
+book=> SELECT to_tsvector('A Hard Day''s Night'), to_tsquery('english', 'night &amp; day');
+ERROR:  syntax error in tsquery: "night &amp; day"
+book=> SELECT to_tsvector('A Hard Day''s Night'), to_tsquery('english', 'night & day');
+        to_tsvector         |   to_tsquery    
+----------------------------+-----------------
+ 'day':3 'hard':2 'night':5 | 'night' & 'day'
+(1 row)
+
+EXPLAIN
+SELECT *
+FROM movies
+WHERE title @@ 'night & day';
+
+book=> EXPLAIN
+book-> SELECT *
+book-> FROM movies
+book-> WHERE title @@ 'night & day';
+                        QUERY PLAN                        
+----------------------------------------------------------
+ Seq Scan on movies  (cost=0.00..175.07 rows=3 width=315)
+   Filter: (title @@ 'night & day'::text)
+(2 rows)
+
+"Seq Scan on movies" means it is doing a full scan on movies.
+
+So create an index:
+CREATE INDEX movies_title_searchable ON movies
+USING gin(to_tsvector('english', title));
+
+To use the index, do this query:
+EXPLAIN
+SELECT *
+FROM movies
+WHERE to_tsvector('english',title) @@ 'night & day';
+(because the index specifies English)
+
+                                           QUERY PLAN                                            
+--------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on movies  (cost=20.00..24.02 rows=1 width=315)
+   Recheck Cond: (to_tsvector('english'::regconfig, title) @@ '''night'' & ''day'''::tsquery)
+   ->  Bitmap Index Scan on movies_title_searchable  (cost=0.00..20.00 rows=1 width=0)
+         Index Cond: (to_tsvector('english'::regconfig, title) @@ '''night'' & ''day'''::tsquery)
+
+I assume that "Bitmap Heap Scan" is better.
+
+Use "EXPLAIN" to ensure that indexes are used.
+
+There is a chapter on text search: http://www.postgresql.org/docs/9.2/static/textsearch.html 
+
+Left off page 43
 
 #- EOF
