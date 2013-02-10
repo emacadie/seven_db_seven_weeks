@@ -12,4 +12,9 @@ Guide at http://hbase.apache.org/book/quickstart.html
 
 Shell at /home/ericm/tmp/hbase/hbase-0.94.4/bin/hbase shell
 
+http://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-single-node-cluster/
+
+http://autofei.wordpress.com/2012/03/27/installing-hbase-on-a-single-ubuntu-box/
+
+
 #- EOF
