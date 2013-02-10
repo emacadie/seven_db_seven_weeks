@@ -732,7 +732,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>
-    <value>/home/ericm/tmp/hbase/hbase-0.94.4/zookeeper</value>
+    <value>file:///home/ericm/tmp/hbase/hbase-0.94.4/zookeeper</value>
     <!-- value>${hbase.tmp.dir}/zookeeper</value -->
     <description>Property from ZooKeeper's config zoo.cfg.
     The directory where the snapshot is stored.
