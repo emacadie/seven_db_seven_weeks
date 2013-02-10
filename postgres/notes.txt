@@ -414,5 +414,20 @@ Use "EXPLAIN" to ensure that indexes are used.
 There is a chapter on text search: http://www.postgresql.org/docs/9.2/static/textsearch.html 
 
 Left off page 43
+the metaphones, which are algorithms for creating a string representation of word sounds
+Note that NATURAL JOIN is an INNER JOIN that
+automatically joins ON matching column names (for example, movies.actor_id=
+movies_actors.actor_id).
+SELECT title
+FROM movies NATURAL JOIN movies_actors NATURAL JOIN actors
+WHERE metaphone(name, 6) = metaphone('Broos Wils', 6);
+
+The money quote: 
+You needn’t know
+how you plan to actually query your model, since you can always perform
+some joins, filters, views, and indexes—odds are good you will always have
+the ability to extract the data you want.
+
+
 
 #- EOF
