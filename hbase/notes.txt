@@ -16,5 +16,7 @@ http://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-single-node
 
 http://autofei.wordpress.com/2012/03/27/installing-hbase-on-a-single-ubuntu-box/
 
+Changing the file  conf/hbase-site.xml by adding the properties for standalone seemed to do the trick
+
 
 #- EOF
