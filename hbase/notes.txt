@@ -18,5 +18,66 @@ http://autofei.wordpress.com/2012/03/27/installing-hbase-on-a-single-ubuntu-box/
 
 Changing the file  conf/hbase-site.xml by adding the properties for standalone seemed to do the trick
 
+Create a table named wiki, with a single column family named "text": 
+create 'wiki', 'text'
+
+Add some data with "put": 
+
+put 'wiki', 'Home', 'text:', 'Welcome to the wiki!'
+
+To view the table contents, use the "scan" command:
+
+1.9.3p0 :007 > scan 'wiki'
+ROW                                    COLUMN+CELL                                                                                                    
+ Home                                  column=text:, timestamp=1361852820970, value=Welcome to the wiki!                                              
+1 row(s) in 0.0380 seconds
+
+To view the data, either of these seem to work:
+get 'wiki', 'Home', 'text:'
+get 'wiki', 'Home', 'text'
+
+So in essence it's a key/value store, except in this case the key can have multiple values.
+The "values" are columns, which themselves are key/value pairs. I think those are regular key/value pairs (1 value per key).
+
+To make schema changes, disable the table:
+disable 'wiki'
+
+By default, it only keeps 3 versions. We want more.
+alter 'wiki', { NAME => 'text', VERSIONS => org.apache.hadoop.hbase.HConstants::ALL_VERSIONS }
+
+Now we add a column family called "revision"
+alter 'wiki', { NAME => 'revision', VERSIONS => org.apache.hadoop.hbase.HConstants::ALL_VERSIONS }
+
+It is the same command.
+
+Now enable the database again:
+
+enable 'wiki'
+
+Javadoc at http://hbase.apache.org/apidocs/index.html
+
+I was able to add these commands in the shell instead of using a script:
+
+import 'org.apache.hadoop.hbase.client.HTable'
+import 'org.apache.hadoop.hbase.client.Put'
+
+def jbytes( *args )
+  args.map { |arg| arg.to_s.to_java_bytes }
+end
+
+table = HTable.new( @hbase.configuration, "wiki" )
+
+p = Put.new( *jbytes( "Home" ) )
+p.add( *jbytes( "text", "", "Hello world" ) )
+p.add( *jbytes( "revision", "author", "jimbo" ) )
+p.add( *jbytes( "revision", "comment", "my first edit" ) )
+
+table.put( p )
+
+------
+You could probably run a script, but it would need to be JRuby
+
+Left off page 105.
+
 
 #- EOF
