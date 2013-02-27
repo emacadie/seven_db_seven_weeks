@@ -21,16 +21,6 @@
  * limitations under the License.
  */
 -->
-
-<!--
-These properties were listed on page 97. Adding these got things working. 
-hbase.master.dns.interface lo
-hbase.master.info.bindAddress 127.0.0.1
-hbase.regionserver.info.bindAddress 127.0.0.1
-hbase.regionserver.dns.interface lo
-hbase.zookeeper.dns.interface lo
--->
-
 <configuration>
 
   <property>
@@ -79,6 +69,15 @@ hbase.zookeeper.dns.interface lo
   </property>
 
 
+
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///home/ericm/tmp/hbase/hbase-0.94.4/data</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>file:///home/ericm/tmp/hbase/hbase-0.94.4/zookeeper</value>
+  </property>
 
 
 <!--

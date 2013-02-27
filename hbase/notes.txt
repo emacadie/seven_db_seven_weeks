@@ -79,5 +79,6 @@ You could probably run a script, but it would need to be JRuby
 
 Left off page 105.
 
+Shell commands: http://wiki.apache.org/hadoop/Hbase/Shell
 
 #- EOF
