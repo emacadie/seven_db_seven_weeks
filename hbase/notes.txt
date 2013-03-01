@@ -79,6 +79,24 @@ You could probably run a script, but it would need to be JRuby
 
 Left off page 105.
 
+I ran the script to add a row and some columns into wiki. The row is "Home2", and I just put "2" at the end of all the values.
+
+ Home2                                 column=revision:author, timestamp=1362113737624, value=jimbo2
+ Home2                                 column=revision:comment, timestamp=1362113737624, value=my first edit2
+ Home2                                 column=text:, timestamp=1362113737624, value=Hello world2   
+
+Delete individual column values in a row:
+delete 'wiki', 'Home2', 'revision:comment'
+Then scan 'wiki' gives:
+ Home2                                 column=revision:author, timestamp=1362113737624, value=jimbo2
+ Home2                                 column=text:, timestamp=1362113737624, value=Hello world2 
+
+To delete the entire Home2 row, do this:
+deleteall 'wiki', 'Home2'
+
+I was able to finish the second exercise by coding the stuff in page105.rb. It would be nice to use KeyValue. Maybe later.
+
+
 Shell commands: http://wiki.apache.org/hadoop/Hbase/Shell
 
 #- EOF
