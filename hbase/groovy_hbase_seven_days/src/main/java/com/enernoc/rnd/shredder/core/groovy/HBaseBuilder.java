@@ -54,6 +54,8 @@ import org.apache.hadoop.hbase.Cell;
 // import org.apache.hadoop.hbase.io.RowResult;
 import org.apache.hadoop.hbase.client.Result;
 
+import org.apache.hadoop.hbase.client.Get;
+
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,17 +236,19 @@ public class HBaseBuilder {
 	HTableDescriptor table = null;
 	
 	if ( getAdmin().tableExists( tableName ) ) {
-	    for ( HTableDescriptor td : admin.listTables() )
+	    for ( HTableDescriptor td : admin.listTables() ) {
 		if ( td.getNameAsString().equals(tableName) ) {
 		    table = td; break;
 		}
+	    }
 	    log.info( "Taking table {} offline for modification", tableName );
 	    
 	    /* table needs to be disabled before calling the create delegate 
 	       where family configuration is done on a live table descriptor */
-	    if ( admin.isTableEnabled(tableName) ) admin.disableTable( tableName );
-	}
-	else {
+	    if ( admin.isTableEnabled( tableName ) ) {
+		admin.disableTable( tableName );
+	    }
+	} else {
 	    log.info( "Creating table '{}'...", tableName );
 	    table = new HTableDescriptor( tableName );
 	}
@@ -256,23 +260,27 @@ public class HBaseBuilder {
 	
 	if ( admin.tableExists( tableName ) ) {
 	    byte[] tableNameBytes = tableName.getBytes();
-	    List<HColumnDescriptor> existingCols = Arrays.asList( 
-								 admin.getTableDescriptor(tableName).getColumnFamilies() );
+	    List<HColumnDescriptor> existingCols = 
+		Arrays.asList( admin.getTableDescriptor( Bytes.toBytes( tableName ) ).getColumnFamilies() );
 	    for ( HColumnDescriptor col : table.getColumnFamilies() ) {
-		if ( existingCols.contains(col) ) 
-		    admin.modifyColumn( tableNameBytes, col.getName(), col );
-		else admin.addColumn( tableNameBytes, col );
+		if ( existingCols.contains(col) ) {
+		    // admin.modifyColumn( tableNameBytes, col.getName(), col );
+		    admin.modifyColumn( tableNameBytes, col );
+		} else {
+		    admin.addColumn( tableNameBytes, col );
+		}
 	    }
 	    /* currently this will not delete existing columns if they are not 
 	       in the new table definition (just to be safe) */
 	    //TODO also update properties on the table?
 	    log.info( "Updated table: {}", table );
-	}
-	else {
+	} else {
 	    admin.createTable( table );
 	    log.info( "Created table: {}", table );
 	}
-	if ( ! admin.isTableEnabled( tableName ) ) admin.enableTable( tableName );
+	if ( ! admin.isTableEnabled( tableName ) ) { 
+	    admin.enableTable( tableName ); 
+	}
 	log.debug( "Enabled table: {}", tableName );
 	return table;
     }
@@ -338,13 +346,13 @@ public class HBaseBuilder {
 	    String tableName = new String(table.getTableName());
 	    List< Put > updates = delegate.getUpdates();
 	    for ( Put update : updates ) {
-		table.commit( update );
+		// table.commit( update );
+		table.put( update );
 		log.trace( "Row update to table '{}': {}", tableName, update );
 	    }
 	    log.debug( "Updated {} rows in table '{}'", updates.size(), tableName );
 	    
-	}
-	finally { delegate = null; }
+	} finally { delegate = null; }
 	return table;
     }
     
