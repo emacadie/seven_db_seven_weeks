@@ -44,10 +44,16 @@ import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.RowLock;
-import org.apache.hadoop.hbase.client.Scanner;
-import org.apache.hadoop.hbase.io.BatchUpdate;
-import org.apache.hadoop.hbase.io.Cell;
-import org.apache.hadoop.hbase.io.RowResult;
+// import org.apache.hadoop.hbase.client.Scanner;
+import org.apache.hadoop.hbase.client.ResultScanner;
+// import org.apache.hadoop.hbase.io.BatchUpdate;
+import org.apache.hadoop.hbase.client.Put;
+// import org.apache.hadoop.hbase.io.Cell;
+import org.apache.hadoop.hbase.Cell;
+
+// import org.apache.hadoop.hbase.io.RowResult;
+import org.apache.hadoop.hbase.client.Result;
+
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +128,7 @@ public class HBaseBuilder {
     }
     
     protected HBaseBuilder( HBaseConfiguration conf ) {
-	log.info( "Connecting to host: {}", conf.get(HConstants.MASTER_ADDRESS) );
+	log.info( "Connecting to host: {}", conf.get( HConstants.DEFAULT_HOST ) );
 	this.conf = conf;
     }
     
@@ -143,7 +149,7 @@ public class HBaseBuilder {
      */
     public static HBaseBuilder connect( String host ) {
 	HBaseConfiguration conf = new HBaseConfiguration();
-	conf.set( HConstants.MASTER_ADDRESS, host );
+	conf.set( HConstants.DEFAULT_HOST, host );
 	return new HBaseBuilder( conf );
     }
 
@@ -163,7 +169,7 @@ public class HBaseBuilder {
      * instance <strong>except</strong> for the following:
      * <dl>
      *  <dt>host</dt><dd>Host name to connect to.  Short for 
-     *    {@link HConstants#MASTER_ADDRESS}.  This value will override 
+     *    {@link HConstants#DEFAULT_HOST}.  This value will override 
      *    any master host address set in a loaded conf file.</dd>
      *  <dt>table</dt><dd>Default table name to use (see {@link #setTableName(String)})</dd>
      *  <dt>confURL</dt><dd>Location of an HBase configuration file to load.
@@ -198,7 +204,7 @@ public class HBaseBuilder {
 	    else conf.set( key, val.toString() );
 	}
 	
-	if ( host != null ) conf.set( HConstants.MASTER_ADDRESS, host );
+	if ( host != null ) conf.set( HConstants.DEFAULT_HOST, host );
 	
 	HBaseBuilder hb = new HBaseBuilder( conf );
 	hb.setTableName( tableName );
@@ -330,8 +336,8 @@ public class HBaseBuilder {
 	    updateClosure.call( table );
 	    
 	    String tableName = new String(table.getTableName());
-	    List<BatchUpdate> updates = delegate.getUpdates();
-	    for ( BatchUpdate update : updates ) {
+	    List< Put > updates = delegate.getUpdates();
+	    for ( Put update : updates ) {
 		table.commit( update );
 		log.trace( "Row update to table '{}': {}", tableName, update );
 	    }
@@ -376,7 +382,7 @@ public class HBaseBuilder {
 	// might be null; this is OK.
 	RowLock lock = (RowLock)args.get("lock");
 	
-	RowResult rr = table.getRow(row,cols,timestamp,versions,lock);
+	Result rr = table.getRow(row,cols,timestamp,versions,lock);
 	if ( rr == null ) return null;
 	return new RowResultProxy( rr );
     }
@@ -433,10 +439,10 @@ public class HBaseBuilder {
     }
     
     /**
-     * <p>Create a scanner on the given table passing each {@link RowResult} to 
+     * <p>Create a scanner on the given table passing each {@link Result} to 
      * the <code>scanClosure</code>.  The Scanner is guaranteed to be closed 
      * when the scanner iteration completes (either normally or due to an 
-     * exception).  Note that each <code>RowResult</code> is actually {@link RowResultProxy wrapped} with additional 
+     * exception).  Note that each <code>Result</code> is actually {@link RowResultProxy wrapped} with additional 
      * convenience methods when it is passed to the <code>scanClosure</code>.</p>  
      * 
      * <p>Valid named arguments are:
@@ -484,7 +490,7 @@ public class HBaseBuilder {
 	    tempVal != null ? Bytes.toBytes( tempVal.toString() ) : 
 	    null;  // endRow may be null; this is OK
 	
-	Scanner scanner = endRow == null ?
+	ResultScanner scanner = endRow == null ?
 	    table.getScanner( colArray, startRow, timestamp ) 
 	    : table.getScanner( colArray, startRow, endRow, timestamp );
 	
@@ -496,7 +502,7 @@ public class HBaseBuilder {
 	    Object result = null;
 	    Proxy rowProxy = new RowResultProxy();
 	    while ( result != SCAN_BREAK ) {
-		RowResult row = scanner.next();
+		Result row = scanner.next();
 		if ( row == null ) break;
 		rowCount ++;
 		rowProxy.setAdaptee( row );
@@ -653,7 +659,7 @@ public class HBaseBuilder {
      */
     public class UpdateDelegate {
 	// list of BatchUpdates created from calls to row('id') {....}
-	private List<BatchUpdate> updates = new ArrayList<BatchUpdate>();
+	private List< Put > updates = new ArrayList< Put >();
 	
 	/**
 	 * List of updates created from calls to {@link #row(String, Closure)}.
@@ -661,13 +667,13 @@ public class HBaseBuilder {
 	 * then appended to this list when the call returns.
 	 * @return
 	 */
-	public List<BatchUpdate> getUpdates() { return this.updates; }
+	public List< Put > getUpdates() { return this.updates; }
 	
 	/**
 	 * Current update instance, available for direct access within each 'row'
 	 * call.  This will be null outside of any row closure.
 	 */
-	protected BatchUpdate currentUpdate;
+	protected Put currentUpdate;
 	
 	/** Set by the call to {@link #family(String, Closure)}.  Within the 
 	 * family closure, this will be set to the family name argument. */
@@ -704,7 +710,7 @@ public class HBaseBuilder {
 	public void row( String rowName, Object timestamp, Closure rowClosure ) {
 	    if ( this.currentUpdate != null ) throw new IllegalStateException("Cannot nest row calls");
 	    
-	    this.currentUpdate = new BatchUpdate( rowName );
+	    this.currentUpdate = new Put( Bytes.toBytes( rowName ) );
 	    
 	    rowClosure.setDelegate( this );
 	    rowClosure.setResolveStrategy( Closure.DELEGATE_FIRST );
@@ -756,17 +762,17 @@ public class HBaseBuilder {
     }
     
     /**
-     * This wraps {@link RowResult} instances that are passed to the closure
+     * This wraps {@link Result} instances that are passed to the closure
      * call in {@link HBase#scan(Map, HTable, Closure) HBase.scan(..)}.  This
-     * class essentially extends RowResult; Groovy's method dispatch will pass
-     * any method calls to the RowResult instance that do not match the 
+     * class essentially extends Result; Groovy's method dispatch will pass
+     * any method calls to the Result instance that do not match the 
      * signature of a method on this class.
      */
     public class RowResultProxy extends Proxy implements Iterable<CellResult> {
 	
 	public RowResultProxy() { super(); }
 	
-	public RowResultProxy( RowResult rr ) {
+	public RowResultProxy( Result rr ) {
 	    super();
 	    this.setAdaptee( rr );
 	}
@@ -778,7 +784,7 @@ public class HBaseBuilder {
 	@Override public Iterator<CellResult> iterator() {
 	    return new Iterator<CellResult>() {
 		Iterator<byte[]> iter = getRow().keySet().iterator();
-		RowResult row = getRow();
+		Result row = getRow();
 
 		@Override public CellResult next() { 
 		    byte[] key = iter.next();
@@ -803,9 +809,9 @@ public class HBaseBuilder {
 	 * to this instance is probably unnecessary as any RowResult method
 	 * calls to the proxy are automatically delegated to this underlying
 	 * instance.
-	 * @return the proxied {@link RowResult} instance.
+	 * @return the proxied {@link Result} instance.
 	 */  
-	public RowResult getRow() { return (RowResult)getAdaptee(); }
+	public Result getRow() { return ( Result ) getAdaptee(); }
 	
 	/** Convenience method to convert the row key to a string */
 	public String getKey() {
@@ -851,7 +857,7 @@ public class HBaseBuilder {
 	 */
 	public double getDouble( String col ) {
 	    throw new UnsupportedOperationException( "Not yet supported" );
-	    //return Bytes.toDouble( getRow().get( col.getBytes() ).getValue() );
+	    // return Bytes.toDouble( getRow().get( col.getBytes() ).getValue() );
 	}
     }
     
