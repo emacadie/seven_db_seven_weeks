@@ -55,6 +55,7 @@ import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Result;
 
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Scan;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -388,10 +389,11 @@ public class HBaseBuilder {
 	}
 	
 	// might be null; this is OK.
-	RowLock lock = (RowLock)args.get("lock");
-	
-	Result rr = table.getRow(row,cols,timestamp,versions,lock);
-	if ( rr == null ) return null;
+	RowLock lock = ( RowLock )args.get( "lock" );
+	Get theGet = new Get( Bytes.toBytes( row ) ); // is this the row, or the row name?
+	// Result rr = table.getRow( row, cols, timestamp, versions, lock );
+	Result rr = table.get( theGet );
+	if ( rr == null ) { return null; }
 	return new RowResultProxy( rr );
     }
     
@@ -481,10 +483,11 @@ public class HBaseBuilder {
 	    int i=0;
 	    for ( HColumnDescriptor cd : cds ) {
 		log.debug( "Scanning all columns in family: {}", cd.getNameAsString() );
-		colArray[i++] = cd.getNameWithColon();
+		colArray[i++] = cd.getName(); // WithColon();
 	    }
+	} else {
+	    colArray = Bytes.toByteArrays( cols.toArray( new String[ cols.size() ] ) );
 	}
-	else colArray = Bytes.toByteArrays(cols.toArray(new String[cols.size()]) );
 	
 	long timestamp = getTimestamp( args.get("timestamp") );
 	
@@ -498,10 +501,15 @@ public class HBaseBuilder {
 	    tempVal != null ? Bytes.toBytes( tempVal.toString() ) : 
 	    null;  // endRow may be null; this is OK
 	
-	ResultScanner scanner = endRow == null ?
-	    table.getScanner( colArray, startRow, timestamp ) 
-	    : table.getScanner( colArray, startRow, endRow, timestamp );
-	
+	ResultScanner scanner;
+	Scan scan;
+	if (endRow == null ) {
+	    scan = new Scan( startRow ); 
+	} else {
+	    scan = new Scan( startRow, endRow );
+	}
+	// table.getScanner( colArray, startRow ) : table.getScanner( colArray, startRow, endRow, timestamp );
+	scanner = table.getScanner( scan );
 	scanClosure.setDelegate( this );
 	
 	int rowCount = 0;
@@ -640,10 +648,14 @@ public class HBaseBuilder {
 
 	public HColumnDescriptor family( String familyName, Closure familyConfig ) throws IOException {
 	    // column family names must end w/ a colon.
-	    if ( ! familyName.endsWith(":") ) familyName += ':';
+	    if ( ! familyName.endsWith(":") ) { 
+		familyName += ':'; 
+	    }
 	    
 	    HColumnDescriptor colFamily = table.getFamily(familyName.getBytes());
-	    if ( colFamily == null ) colFamily = new HColumnDescriptor(familyName);
+	    if ( colFamily == null ) { 
+		colFamily = new HColumnDescriptor(familyName); 
+	    }
 
 	    // Allow closure arg to configure column family options:
 	    if ( familyConfig != null ) {
@@ -653,8 +665,11 @@ public class HBaseBuilder {
 	    }
 
 	    // Add column to table.
-	    if ( ! table.hasFamily( familyName.getBytes() ) ) table.addFamily( colFamily );
-	    else admin.modifyColumn( table.getNameAsString(), familyName, colFamily );
+	    if ( ! table.hasFamily( familyName.getBytes() ) ) { 
+		table.addFamily( colFamily ); 
+	    } else {
+		admin.modifyColumn( table.getNameAsString(), colFamily );
+	    }
 	    return colFamily;
 	}
     }
@@ -724,7 +739,7 @@ public class HBaseBuilder {
 	    rowClosure.setResolveStrategy( Closure.DELEGATE_FIRST );
 	    rowClosure.call( currentUpdate );
 	    
-	    currentUpdate.setTimestamp( HBaseBuilder.getTimestamp( timestamp ) );
+	    // currentUpdate.setTimestamp( HBaseBuilder.getTimestamp( timestamp ) );
 	    this.updates.add( this.currentUpdate );
 	    this.currentUpdate = null; // 'currentUpdate' should not be available outside of row closure
 	}
@@ -762,10 +777,14 @@ public class HBaseBuilder {
 	 * @see HBase#getBytes(Object) 
 	 */
 	public void col( String columnName, Object val ) {
-	    if ( currentUpdate == null ) throw new IllegalStateException( 
-									 "Col must be called from within a row or family closure" );
-	    if ( currentFamily != null ) columnName = currentFamily + columnName;
-	    currentUpdate.put( columnName, HBaseBuilder.getBytes(val) ) ;
+	    if ( currentUpdate == null ) {
+		throw new IllegalStateException( "Col must be called from within a row or family closure" );
+	    }
+	    if ( currentFamily != null ) { 
+		columnName = currentFamily + columnName; 
+	    }
+	    // currentUpdate.put( columnName, HBaseBuilder.getBytes(val) ) ;
+	    currentUpdate.add( Bytes.toBytes( currentFamily), Bytes.toBytes( columnName ), HBaseBuilder.getBytes(val) ) ;
 	}
     }
     
