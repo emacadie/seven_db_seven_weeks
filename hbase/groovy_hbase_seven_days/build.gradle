@@ -36,6 +36,7 @@ dependencies {
     // From Maven, it's GroupId:ArtifactId:Version 
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
 
+    compile 'commons-cli:commons-cli:1.2'
     compile 'commons-codec:commons-codec:1.6'
     compile 'io.netty:netty:3.5.7.Final'
     compile 'org.apache.hbase:hbase-common:0.98.0-hadoop2'
@@ -44,6 +45,7 @@ dependencies {
     compile 'org.apache.hadoop:hadoop-common:0.23.10'
 
     // logging
+    compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-api:1.7.+'
     testRuntime 'org.slf4j:slf4j-ext:1.7.+'
     testRuntime 'org.slf4j:jcl-over-slf4j:1.7.+'
@@ -53,7 +55,7 @@ dependencies {
     testRuntime 'ch.qos.logback:logback-core:1.0.+'
     testRuntime 'ch.qos.logback:logback-classic:1.0.+'
     // Groovy version 2.1
-    compile 'org.codehaus.groovy:groovy-all:2.1.0'
+    compile 'org.codehaus.groovy:groovy-all:2.2.1'
      
     // from Spock
     testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
@@ -90,7 +92,9 @@ task runJava(type: JavaExec) {
      systemProperty 'sysProp', 'notUsed'
      jvmArgs '-client'
      // We can pass arguments to the main() method of gradle.sample.SampleApp.
-     args 'www.yahoo.com'
+          if ( rootProject.hasProperty( "mainArgs" ) ) {
+      args = mainArgs.tokenize() // args wants a List, so split by spaces if need be
+     } 
 }
 
 task runGroovy(type: JavaExec) {
@@ -109,13 +113,15 @@ task runGroovy(type: JavaExec) {
      systemProperty 'sysProp', 'notUsed'
      jvmArgs '-client'
      // We can pass arguments to the main() method of gradle.sample.SampleApp.
-     args 'www.yahoo.com'
+          if ( rootProject.hasProperty( "mainArgs" ) ) {
+      args = mainArgs.tokenize() // args wants a List, so split by spaces if need be
+     } 
 }
 
 
 
 
-
+/*
 task printClassPath(type:JavaExec) {
      dependsOn classes
      description = 'this prints out the class path'
@@ -128,7 +134,7 @@ task printClassPath(type:JavaExec) {
      // println "destinationDir: " + destinationDir.getAbsolutePath
      println "output.classesDir: " + sourceSets.main.output.classesDir.getPath()
 }
-
+*/
 
 task(console, dependsOn: 'classes', type: JavaExec) {
   main = 'groovy.ui.Console'

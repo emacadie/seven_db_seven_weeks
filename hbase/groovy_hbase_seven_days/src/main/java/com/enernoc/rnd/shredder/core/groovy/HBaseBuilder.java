@@ -115,15 +115,15 @@ import org.slf4j.LoggerFactory;
 public class HBaseBuilder {
 
     protected Logger log = LoggerFactory.getLogger(getClass());
-    /** Return this value to break out of a scan closure execution loop if the 
-     * user wants to end scanning.  Since HBase is in the scan closure scope, 
-     * all that is necessary is to call <code>return SCAN_BREAK</code> */
+    // ** Return this value to break out of a scan closure execution loop if the 
+    // * user wants to end scanning.  Since HBase is in the scan closure scope, 
+    // * all that is necessary is to call <code>return SCAN_BREAK</code> 
     public final String SCAN_BREAK = "com.enernoc.rnd.eps.SCANNER_BREAK";
 
     HBaseConfiguration conf;
     HBaseAdmin admin;
     
-    /** Default table to use for update/ scan operations */
+    //** Default table to use for update/ scan operations 
     HTable table;
     
     protected HBaseBuilder() {
@@ -139,7 +139,7 @@ public class HBaseBuilder {
      * Connect to HBase using the default configuration (similar to the no-arg
      * constructor for {@link HBaseAdmin} and {@link HTable}.
      * @return the HBase builder instance
-     */
+     *
     public static HBaseBuilder connect() {
 	return new HBaseBuilder();
     }
@@ -149,7 +149,7 @@ public class HBaseBuilder {
      * @see HConstants#MASTER_ADDRESS
      * @param host host name or IP of the master HBase node.
      * @return the HBase builder instance
-     */
+     *
     public static HBaseBuilder connect( String host ) {
 	HBaseConfiguration conf = new HBaseConfiguration();
 	conf.set( HConstants.DEFAULT_HOST, host );
@@ -161,7 +161,7 @@ public class HBaseBuilder {
      * <code>new HTable( conf )</code> and <code>new HBaseAdmin( conf )</code>
      * @param conf configuration to use for connecting to the HBase server.
      * @return the HBase builder instance
-     */
+     *
     public static HBaseBuilder connect( HBaseConfiguration conf ) {
 	return new HBaseBuilder( conf );
     }
@@ -187,7 +187,7 @@ public class HBaseBuilder {
      * @param args
      * @return the HBase builder instance
      * @throws IOException if the 'confURL' or tableName param is invalid
-     */
+     *
     public static HBaseBuilder connect( Map<String, Object> args ) throws IOException {
 	String host = (String)args.remove("host"); 
 	String tableName = (String)args.remove("table");
@@ -232,7 +232,7 @@ public class HBaseBuilder {
      * @return the HTableDescriptor used to define this table.
      * @throws MasterNotRunningException
      * @throws IOException thrown by HBaseAdmin
-     */
+     *
     public HTableDescriptor create( String tableName, Closure tableConfig ) throws MasterNotRunningException, IOException {
 	HTableDescriptor table = null;
 	
@@ -244,8 +244,7 @@ public class HBaseBuilder {
 	    }
 	    log.info( "Taking table {} offline for modification", tableName );
 	    
-	    /* table needs to be disabled before calling the create delegate 
-	       where family configuration is done on a live table descriptor */
+	    // table needs to be disabled before calling the create delegate where family configuration is done on a live table descriptor 
 	    if ( admin.isTableEnabled( tableName ) ) {
 		admin.disableTable( tableName );
 	    }
@@ -271,8 +270,7 @@ public class HBaseBuilder {
 		    admin.addColumn( tableNameBytes, col );
 		}
 	    }
-	    /* currently this will not delete existing columns if they are not 
-	       in the new table definition (just to be safe) */
+	    // currently this will not delete existing columns if they are not in the new table definition (just to be safe) 
 	    //TODO also update properties on the table?
 	    log.info( "Updated table: {}", table );
 	} else {
@@ -293,7 +291,7 @@ public class HBaseBuilder {
      * @param updateClosure
      * @return the HTable instance used for updates.
      * @throws IOException
-     */
+     *
     public HTable update( Closure updateClosure ) throws IOException {
 	return this.update( this.table, updateClosure );
     }
@@ -305,7 +303,7 @@ public class HBaseBuilder {
      * @param updateClosure code to create row and column updates
      * @return The HTable instance used for committing the BatchUpdates
      * @throws IOException if the underlying HTable encounters errors during update
-     */
+     *
     public HTable update( String tableName, Closure updateClosure ) throws IOException {
 	return this.update( new HTable(conf, tableName), updateClosure );
     }
@@ -336,7 +334,7 @@ public class HBaseBuilder {
      * @param updateClosure code to create row and column updates
      * @return The HTable instance used for committing the BatchUpdates
      * @throws IOException if the underlying HTable encounters errors during update
-     */
+     *
     public HTable update( HTable table, Closure updateClosure ) throws IOException {
 	UpdateDelegate delegate = new UpdateDelegate();
 	try {
@@ -372,7 +370,7 @@ public class HBaseBuilder {
      * @return a {@link RowResultProxy} of the row, or <code>null</code> if the 
      *  underlying call to {@link HTable#getRow(String) getRow} returned null.
      * @throws IOException
-     */
+     *
     public RowResultProxy getRow( Map<String,Object> args, String row, HTable table ) throws IOException {
 	long timestamp =  getTimestamp( args.get("timestamp") );
 	
@@ -405,7 +403,7 @@ public class HBaseBuilder {
      * @return a {@link RowResultProxy} of the row, or <code>null</code> if the 
      *  underlying call to {@link HTable#getRow(String) getRow} returned null.
      * @throws IOException
-     */
+     *
     public RowResultProxy getRow( Map<String,Object> args, String row, String tableName ) throws IOException {
 	return getRow( args, row, new HTable( conf, tableName ) );
     }
@@ -417,7 +415,7 @@ public class HBaseBuilder {
      * @return a {@link RowResultProxy} of the row, or <code>null</code> if the 
      *  underlying call to {@link HTable#getRow(String) getRow} returned null.
      * @throws IOException
-     */
+     *
     public RowResultProxy getRow( Map<String,Object> args, String row ) throws IOException {
 	if ( this.table == null ) throw new IllegalStateException(
 								  "tableName property must be set before calling methods that do not specify a table name." );
@@ -427,7 +425,7 @@ public class HBaseBuilder {
     /**
      * Short form of {@link #scan(Map,HTable,Closure)}.  This method uses
      * the default table defined in {@link #setTableName(String)}.  
-     */
+     *
     public HTable scan( Map<String,Object> args, Closure scanClosure ) throws IOException {
 	return this.scan( args, this.table, scanClosure );
     }
@@ -443,7 +441,7 @@ public class HBaseBuilder {
      * @param scanClosure closure to iterate over each row result
      * @return the table that was scanned
      * @throws IOException if the underlying HBase API throws an exception
-     */
+     *
     public HTable scan( Map<String,Object> args, String tableName, Closure scanClosure ) throws IOException {
 	return this.scan( args, new HTable( conf, tableName ), scanClosure );
     }
@@ -472,7 +470,7 @@ public class HBaseBuilder {
      * @param scanClosure closure to iterate over each row result
      * @return the table that was scanned
      * @throws IOException if the underlying HBase API throws an exception
-     */
+     *
     public HTable scan( Map<String,Object> args, HTable table, Closure scanClosure ) throws IOException {
 	// TODO this might throw a CCE if value is a GString rather than a String...
 	List<String> cols = (List<String>)args.get("cols"); 
@@ -544,7 +542,7 @@ public class HBaseBuilder {
      * @return byte[] suitable for storage by HBase
      * @throws IllegalArgumentException if the argument value is not a 
      * convertible type
-     */
+     *
     public static byte[] getBytes( Object val ) throws IllegalArgumentException {
 	if ( val == null ) return null;
 	if ( val.getClass() == String.class ) return Bytes.toBytes((String)val);
@@ -564,7 +562,7 @@ public class HBaseBuilder {
      * @param ts value to convert 
      * @return a suitable HBase timestamp value
      * @throws IllegalArgumentException if an object of the wrong type is given.
-     */
+     *
     public static long getTimestamp( Object ts ) throws IllegalArgumentException {
 	if ( ts == null ) return HConstants.LATEST_TIMESTAMP;
 	if ( ts.getClass() == Long.class || ts.getClass() == Integer.class ) return (Long)ts;
@@ -577,7 +575,7 @@ public class HBaseBuilder {
     
     /**
      * @return the configuration used by this instance to connect to HBase
-     */
+     *
     public HBaseConfiguration getConfiguration() {
 	return this.conf;
     }
@@ -592,7 +590,7 @@ public class HBaseBuilder {
      * @return the HBaseAdmin instance that will be used for calls to 
      *  <code>create(..)</code>
      * @throws MasterNotRunningException
-     */
+     *
     public HBaseAdmin getAdmin() throws MasterNotRunningException {
 	if ( this.admin == null ) this.admin = new HBaseAdmin( this.conf );
 	return this.admin;
@@ -602,7 +600,7 @@ public class HBaseBuilder {
      * in <code>update</code> and <code>scan</code> operations. 
      * @throws IOException if the table name is not a valid table in the current
      * HBase server. 
-     */
+     *
     public void setTableName( String name ) throws IOException {
 	if ( name == null || name.length() < 1 ) {
 	    this.table = null;
@@ -615,7 +613,7 @@ public class HBaseBuilder {
      * Set the default table used for all methods that do not accept a 'table'
      * or 'tableName' parameter. 
      * @param table
-     */
+     *
     public void setTable( HTable table ) {
 	this.table = table;
     }
@@ -626,12 +624,12 @@ public class HBaseBuilder {
      * This class is used as the {@link Closure} delegate to add the 
      * <code>family('familyName')</code> method in the scope of the 
      * {@link #create(String, Closure)} method's closure. 
-     */
+     *
     public class CreateDelegate {
 	protected HBaseAdmin admin;
 	protected HTableDescriptor table;
 	
-	/** Called internally by the HBase builder */ 
+	/** Called internally by the HBase builder * 
 	protected CreateDelegate(HBaseAdmin admin, HTableDescriptor table) {
 	    this.admin = admin; this.table = table;
 	}
@@ -641,7 +639,7 @@ public class HBaseBuilder {
 	 * @param familyName family name to create
 	 * @return the column family definition that was created
 	 * @throws IOException if any errors were thrown by the HBase API
-	 */
+	 *
 	public HColumnDescriptor family( String familyName ) throws IOException {
 	    return this.family( familyName, null );
 	}
@@ -679,7 +677,7 @@ public class HBaseBuilder {
      * <code>family('familyName')</code> and <code>col( name, val)</code> 
      * methods in the scope of the {@link HBase#update(HTable, Closure)} 
      * method's closure argument. 
-     */
+     *
     public class UpdateDelegate {
 	// list of BatchUpdates created from calls to row('id') {....}
 	private List< Put > updates = new ArrayList< Put >();
@@ -689,17 +687,17 @@ public class HBaseBuilder {
 	 * Each <code>row(..)</code> call creates a new BatchUpdate which is 
 	 * then appended to this list when the call returns.
 	 * @return
-	 */
+	 *
 	public List< Put > getUpdates() { return this.updates; }
 	
 	/**
 	 * Current update instance, available for direct access within each 'row'
 	 * call.  This will be null outside of any row closure.
-	 */
+	 *
 	protected Put currentUpdate;
 	
 	/** Set by the call to {@link #family(String, Closure)}.  Within the 
-	 * family closure, this will be set to the family name argument. */
+	 * family closure, this will be set to the family name argument. *
 	protected String currentFamily = null;
 	
 	/**
@@ -707,13 +705,13 @@ public class HBaseBuilder {
 	 * update { ... } closure.  If this is not explicitly set it will
 	 * default to HConstants.LATEST_TIMESTAMP, which is what BatchUpdate 
 	 * defaults to. 
-	 */
+	 *
 	Object defaultTimestamp = HConstants.LATEST_TIMESTAMP;
 	
 	/**
 	 * Short form for row( rowName, timestamp, rowClosure ) which uses the 
 	 * default timestamp.
-	 */
+	 *
 	public void row( String rowName, Closure rowClosure ) {
 	    row( rowName, this.defaultTimestamp, rowClosure );
 	}
@@ -729,7 +727,7 @@ public class HBaseBuilder {
 	 * @param timestamp Date, Calendar or long timestamp to be used for this row update
 	 * @param rowClosure closure used to set column values via calls to 'family',
 	 *   'col' or direct use of the 'currentUpdate' BatchUpdate property.
-	 */
+	 *
 	public void row( String rowName, Object timestamp, Closure rowClosure ) {
 	    if ( this.currentUpdate != null ) throw new IllegalStateException("Cannot nest row calls");
 	    
@@ -755,7 +753,7 @@ public class HBaseBuilder {
 	 *   not explicitly supplied.
 	 * @param colClosure all <code>col</code> calls within this closure will 
 	 *   automatically be prepended with this family name.
-	 */
+	 *
 	public void family(String familyName, Closure colClosure ) {
 	    if ( currentFamily != null ) throw new IllegalStateException("Cannot nest family calls");
 	    if ( currentUpdate == null ) throw new IllegalStateException("Family must be called from within a row closure");
@@ -775,7 +773,7 @@ public class HBaseBuilder {
 	 * this is called from a family closure, only the column name should be 
 	 * given, i.e. <code>col( 'name', val )</code>.
 	 * @see HBase#getBytes(Object) 
-	 */
+	 *
 	public void col( String columnName, Object val ) {
 	    if ( currentUpdate == null ) {
 		throw new IllegalStateException( "Col must be called from within a row or family closure" );
@@ -794,7 +792,7 @@ public class HBaseBuilder {
      * class essentially extends Result; Groovy's method dispatch will pass
      * any method calls to the Result instance that do not match the 
      * signature of a method on this class.
-     */
+     *
     public class RowResultProxy extends Proxy implements Iterable<CellResult> {
 	
 	public RowResultProxy() { super(); }
@@ -807,7 +805,7 @@ public class HBaseBuilder {
 	/**
 	 * Convenience iterator to traverse the set of column keys, assuming
 	 * each key is a String.
-	 */
+	 *
 	@Override public Iterator<CellResult> iterator() {
 	    return new Iterator<CellResult>() {
 		Iterator<byte[]> iter = getRow().keySet().iterator();
@@ -837,43 +835,43 @@ public class HBaseBuilder {
 	 * calls to the proxy are automatically delegated to this underlying
 	 * instance.
 	 * @return the proxied {@link Result} instance.
-	 */  
+	 *  
 	public Result getRow() { return ( Result ) getAdaptee(); }
 	
-	/** Convenience method to convert the row key to a string */
+	/** Convenience method to convert the row key to a string *
 	public String getKey() {
 	    return Bytes.toString( getRow().getRow() );
 	}
 	
-	/** Convenience method to convert row key to a long */
+	/** Convenience method to convert row key to a long *
 	public long getKeyAsLong() {
 	    return Bytes.toLong( getRow().getRow() );
 	}
 	
 	/**
 	 * Retrieve the given column value for this row as a String
-	 */
+	 *
 	public String getString( String col ) {
 	    return Bytes.toString( getRow().get( col.getBytes() ).getValue() );
 	}
 	
 	/**
 	 * Retrieve the given column value for this row as an Int
-	 */
+	 *
 	public int getInt( String col ) {
 	    return Bytes.toInt( getRow().get( col.getBytes() ).getValue() );
 	}
 	
 	/**
 	 * Retrieve the given column value for this row as a Long
-	 */
+	 *
 	public long getLong( String col ) {
 	    return Bytes.toLong( getRow().get( col.getBytes() ).getValue() );
 	}
 	
 	/**
 	 * Retrieve the given column value for this row as a Date
-	 */
+	 *
 	public Date getDate( String col ) {
 	    return new Date( getLong(col) );
 	}
@@ -881,7 +879,7 @@ public class HBaseBuilder {
 	/**
 	 * Retrieve the given column value for this row as a String
 	 * TODO implement when Bytes.toDouble is implemented 
-	 */
+	 *
 	public double getDouble( String col ) {
 	    throw new UnsupportedOperationException( "Not yet supported" );
 	    // return Bytes.toDouble( getRow().get( col.getBytes() ).getValue() );
@@ -891,7 +889,7 @@ public class HBaseBuilder {
     /**
      * Wraps a {@link Cell} in a number of convenience methods, as well as 
      * retaining the column key which is associated with it.  
-     */
+     *
     public class CellResult {
 	byte[] name;
 	Cell cell;
@@ -915,7 +913,8 @@ public class HBaseBuilder {
 	/** 
 	 * Return the timestamp of the underlying cell 
 	 * @see Cell#getTimestamp()
-	 */
+	 *
 	public long getTimestamp() { return cell.getTimestamp(); }
     }
+    */
 }
