@@ -19,3 +19,21 @@ To run HBase:
 /home/ericm/tmp/hbase/hbase-0.94.4/bin/start-hbase.sh   
 /home/ericm/tmp/hbase/hbase-0.94.4/bin/stop-hbase.sh   
 Shell at /home/ericm/tmp/hbase/hbase-0.94.4/bin/hbase shell   
+
+Get 0.98
+/home/ericm/tmp/hbase/hbase-0.98.0-hadoop2
+Create /home/ericm/tmp/hbase/hbase-0.98.0-hadoop2/data  
+Create /home/ericm/tmp/hbase/hbase-0.98.0-hadoop2/zookeeper
+Edit /home/ericm/tmp/hbase/hbase-0.98.0-hadoop2/conf/hbase-site.xml
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///home/ericm/tmp/hbase/hbase-0.98.0-hadoop2/data</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/home/ericm/tmp/hbase/hbase-0.98.0-hadoop2/zookeeper</value>
+  </property>
+</configuration>

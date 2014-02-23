@@ -9,7 +9,7 @@ log4j {
   appender."scrlog.layout"="org.apache.log4j.PatternLayout"
   appender."scrlog.layout.ConversionPattern"="%d %5p %c{1}:%M:%L - %m%n"
   appender."scrlog.file"="rootscript.log"
-  rootLogger="debug,scrlog,stdout"
+  rootLogger="info,scrlog,stdout"
 }
 
 /*

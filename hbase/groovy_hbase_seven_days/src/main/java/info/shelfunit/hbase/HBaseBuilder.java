@@ -59,6 +59,9 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;
 
 import org.apache.hadoop.hbase.util.Bytes;
+
+import org.apache.hadoop.conf.Configuration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,18 +125,72 @@ public class HBaseBuilder {
      * all that is necessary is to call <code>return SCAN_BREAK</code> */
     public final String SCAN_BREAK = "com.enernoc.rnd.eps.SCANNER_BREAK";
 
-    HBaseConfiguration conf;
+    // HBaseConfiguration conf;
+    Configuration conf;
     HBaseAdmin admin;
     
     /** Default table to use for update/ scan operations */
     HTable table;
     
+      /*      
+        Configuration conf = HBaseConfiguration.create();
+HTable table = new HTable(conf, “mytable”);
+table.setAutoFlush(false);
+table.setWriteBufferSize(2 * 1024 * 1024); // 2 Mb
+// ... do useful stuff
+table.close()
+*/
+    /*
     protected HBaseBuilder() {
-        this( new HBaseConfiguration() );
+        this( new HBaseConfiguration() ); // HBaseConfiguration.create() );
+    }
+    */
+    
+    // protected HBaseBuilder( HBaseConfiguration conf ) {
+    protected HBaseBuilder() {
+        
+        this.conf = HBaseConfiguration.create();
+        log.info( "-------------------------- Connecting to host: {}", conf.toString() );
+        
+        try {
+            HTable table2 = new HTable(conf, "myLittleHBaseTable");
+            System.out.println( "-------------------------- Got a table" );
+            // To add to a row, use Put. A Put constructor takes the name of the row
+            // you want to insert into as a byte array. In HBase, the Bytes class
+            // has utility for converting all kinds of java types to byte arrays. In
+            // the below, we are converting the String "myLittleRow" into a byte
+            // array to use as a row key for our update. Once you have a Put
+            // instance, you can adorn it by setting the names of columns you want
+            // to update on the row, the timestamp to use in your update, etc.
+            // If no timestamp, the server applies current time to the edits.
+            Put p = new Put(Bytes.toBytes("myLittleRow"));
+            table2.put( p );
+  /*          
+            HTable table = new HTable(conf, “mytable”);
+table.setAutoFlush(false);
+table.setWriteBufferSize(2 * 1024 * 1024); // 2 Mb
+// ... do useful stuff
+
+HTable table = ...
+// instantiate HTable
+Put put = new Put(Bytes.toBytes(“key1”));
+put.add(Bytes.toBytes(“colfam”), Bytes.toBytes(“qual”),
+Bytes.toBytes(“my_value”));
+put.add(...);
+...
+table.put(put);
+*/
+table.close();
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+        //////////////////////////////////////////////////////////
     }
     
-    protected HBaseBuilder( HBaseConfiguration conf ) {
-        log.info( "Connecting to host: {}", conf.get( HConstants.DEFAULT_HOST ) );
+    protected HBaseBuilder( Configuration conf ) {
+    
+        log.info( "Connecting to host: {}", conf.toString() ); // get( HConstants.DEFAULT_HOST ) );
         this.conf = conf;
     }
     
@@ -153,7 +210,8 @@ public class HBaseBuilder {
      * @return the HBase builder instance
      */
     public static HBaseBuilder connect( String host ) {
-        HBaseConfiguration conf = new HBaseConfiguration();
+        // HBaseConfiguration conf = new HBaseConfiguration();
+        Configuration conf = HBaseConfiguration.create();
         conf.set( HConstants.DEFAULT_HOST, host );
         return new HBaseBuilder( conf );
     }
@@ -594,7 +652,12 @@ public class HBaseBuilder {
     /**
      * @return the configuration used by this instance to connect to HBase
      */
+     /*
     public HBaseConfiguration getConfiguration() {
+        return this.conf;
+    }
+    */
+    public Configuration getConfiguration() {
         return this.conf;
     }
     

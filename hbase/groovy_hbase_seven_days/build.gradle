@@ -76,25 +76,25 @@ dependencies {
 }
 
 task runJava(type: JavaExec) {
-     println( "-- Groovy version: " + groovy.lang.GroovySystem.getVersion() )
-     dependsOn classes
-     description = 'Run gradle.sample.SampleApp'
-     // Java main class to execute.
-     if ( rootProject.hasProperty("mainClass") ) {     
-     	main = mainClass
-     } else {
-       main = 'activejdbc.examples.simple.SimpleExample'
-     }
-
-     // We need to set the classpath.
-     classpath sourceSets.main.runtimeClasspath
-     // Extra options can be set.
-     systemProperty 'sysProp', 'notUsed'
-     jvmArgs '-client'
-     // We can pass arguments to the main() method of gradle.sample.SampleApp.
-          if ( rootProject.hasProperty( "mainArgs" ) ) {
-      args = mainArgs.tokenize() // args wants a List, so split by spaces if need be
-     } 
+    println( "-- Groovy version: " + groovy.lang.GroovySystem.getVersion() )
+    dependsOn classes
+    description = 'Run gradle.sample.SampleApp'
+    // Java main class to execute.
+    if ( rootProject.hasProperty("mainClass") ) {     
+        main = mainClass
+    } else {
+        main = 'activejdbc.examples.simple.SimpleExample'
+    }
+    
+    // We need to set the classpath.
+    classpath sourceSets.main.runtimeClasspath
+    // Extra options can be set.
+    systemProperty 'sysProp', 'notUsed'
+    jvmArgs '-client'
+    // We can pass arguments to the main() method of gradle.sample.SampleApp.
+    if ( rootProject.hasProperty( "mainArgs" ) ) {
+        args = mainArgs.tokenize() // args wants a List, so split by spaces if need be
+    } 
 }
 
 task runGroovy(type: JavaExec) {
@@ -113,7 +113,7 @@ task runGroovy(type: JavaExec) {
      systemProperty 'sysProp', 'notUsed'
      jvmArgs '-client'
      // We can pass arguments to the main() method of gradle.sample.SampleApp.
-          if ( rootProject.hasProperty( "mainArgs" ) ) {
+     if ( rootProject.hasProperty( "mainArgs" ) ) {
       args = mainArgs.tokenize() // args wants a List, so split by spaces if need be
      } 
 }
