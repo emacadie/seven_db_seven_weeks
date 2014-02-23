@@ -43,7 +43,7 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.RowLock;
+// import org.apache.hadoop.hbase.client.RowLock;
 // import org.apache.hadoop.hbase.client.Scanner;
 import org.apache.hadoop.hbase.client.ResultScanner;
 // import org.apache.hadoop.hbase.io.BatchUpdate;

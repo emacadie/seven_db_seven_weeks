@@ -41,9 +41,11 @@ dependencies {
     compile 'io.netty:netty:3.5.7.Final'
     compile 'org.apache.hbase:hbase-common:0.98.0-hadoop2'
     compile 'org.apache.hbase:hbase-client:0.98.0-hadoop2'
-    compile 'org.apache.hbase:hbase:0.94.16' // this one seemed to download a LOT of stuff
+    compile 'org.apache.hbase:hbase:0.98.0-hadoop2'
+    // compile 'org.apache.hbase:hbase:0.94.16' // this one seemed to download a LOT of stuff
     compile 'org.apache.hadoop:hadoop-common:0.23.10'
-
+    // compile 'org.apache.hadoop:hadoop-mapreduce-client-core:0.23.10'
+    compile 'org.apache.hadoop:hadoop-mapreduce-client-core:2.2.0'
     // logging
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-api:1.7.+'

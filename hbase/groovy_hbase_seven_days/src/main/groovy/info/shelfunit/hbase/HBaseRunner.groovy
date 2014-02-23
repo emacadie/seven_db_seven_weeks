@@ -9,6 +9,47 @@ import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.apache.log4j.PropertyConfigurator
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.MasterNotRunningException;
+import org.apache.hadoop.hbase.ZooKeeperConnectionException; // added
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HTable;
+// import org.apache.hadoop.hbase.client.RowLock;
+// import org.apache.hadoop.hbase.client.Scanner;
+import org.apache.hadoop.hbase.client.ResultScanner;
+// import org.apache.hadoop.hbase.io.BatchUpdate;
+import org.apache.hadoop.hbase.client.Put;
+// import org.apache.hadoop.hbase.io.Cell;
+import org.apache.hadoop.hbase.Cell;
+
+// import org.apache.hadoop.hbase.io.RowResult;
+import org.apache.hadoop.hbase.client.Result;
+
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Scan;
+
+import org.apache.hadoop.hbase.util.Bytes;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.HConnectionManager
+import org.apache.hadoop.hbase.client.HConnection
+import org.apache.hadoop.hbase.TableName
+
 class HBaseRunner {
 
     def static getLogger( options ) {
@@ -32,6 +73,35 @@ class HBaseRunner {
         log.info( "hbase is a ${hbase.getClass().getName()}" )
     }
     
+    def static runStuff002( log ) {
+        // Configuration conf = HBaseConfiguration.create();
+        
+        Configuration conf = HBaseConfiguration.create();
+        log.info( "Got the conf" )
+       
+        HBaseAdmin admin = new HBaseAdmin(conf);
+        log.info( "got the admin" )
+        HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf("people"));
+        log.info( "got the table descriptor" )
+        tableDescriptor.addFamily(new HColumnDescriptor("personal"));
+        log.info( "added column personal" )
+        tableDescriptor.addFamily(new HColumnDescriptor("contactinfo"));
+        log.info( "added column contact info" )
+        tableDescriptor.addFamily(new HColumnDescriptor("creditcard"));
+        log.info( "added column credit card" )
+        admin.createTable(tableDescriptor);
+        log.info( "created table" )
+      
+        // HConnection connection = HConnectionManager.createConnection( conf );
+        
+        HTable table = new HTable(conf, "wiki");
+        table.setAutoFlush(false);
+        table.setWriteBufferSize(2 * 1024 * 1024); // 2 Mb
+        // ... do useful stuff
+        table.close()
+       
+    }
+    
     def static void main( String[] args ) {
         def cli = new CliBuilder( usage: 'HBaseRunner' )
         cli.inputFile( args: 1, argName: 'file path', 'The input file, required argument' )
@@ -44,8 +114,9 @@ class HBaseRunner {
         println( "Here is options.inputFile: ${options.inputFile}" )
         
         def log = getLogger( options )
-        runStuff001( log )
-        
+        runStuff002( log )
+        def classpath = System.properties["java.class.path"]
+        println( "classpath: ${classpath}" )
         
         
     } // end method main

@@ -44,7 +44,7 @@ import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.ZooKeeperConnectionException; // added
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.RowLock;
+// import org.apache.hadoop.hbase.client.RowLock;
 // import org.apache.hadoop.hbase.client.Scanner;
 import org.apache.hadoop.hbase.client.ResultScanner;
 // import org.apache.hadoop.hbase.io.BatchUpdate;
@@ -153,7 +153,10 @@ table.close()
         log.info( "-------------------------- Connecting to host: {}", conf.toString() );
         
         try {
-            HTable table2 = new HTable(conf, "myLittleHBaseTable");
+            HBaseAdmin theAdmin = new HBaseAdmin( conf );
+            theAdmin.checkHBaseAvailable( conf );
+            // HTable table2 = new HTable(conf, "wiki");
+            // HTableDescriptor table2 = new HTableDescriptor( "wiki2" );
             System.out.println( "-------------------------- Got a table" );
             // To add to a row, use Put. A Put constructor takes the name of the row
             // you want to insert into as a byte array. In HBase, the Bytes class
@@ -163,8 +166,8 @@ table.close()
             // instance, you can adorn it by setting the names of columns you want
             // to update on the row, the timestamp to use in your update, etc.
             // If no timestamp, the server applies current time to the edits.
-            Put p = new Put(Bytes.toBytes("myLittleRow"));
-            table2.put( p );
+            // Put p = new Put(Bytes.toBytes("myLittleRow"));
+            // table2.put( p );
   /*          
             HTable table = new HTable(conf, “mytable”);
 table.setAutoFlush(false);
@@ -180,7 +183,7 @@ put.add(...);
 ...
 table.put(put);
 */
-table.close();
+// table.close();
 
         } catch ( Exception e ) {
             e.printStackTrace();
