@@ -155,7 +155,7 @@ table.close()
         try {
             HBaseAdmin theAdmin = new HBaseAdmin( conf );
             theAdmin.checkHBaseAvailable( conf );
-            // HTable table2 = new HTable(conf, "wiki");
+            HTable table2 = new HTable(conf, "wiki");
             // HTableDescriptor table2 = new HTableDescriptor( "wiki2" );
             System.out.println( "-------------------------- Got a table" );
             // To add to a row, use Put. A Put constructor takes the name of the row
@@ -168,6 +168,7 @@ table.close()
             // If no timestamp, the server applies current time to the edits.
             // Put p = new Put(Bytes.toBytes("myLittleRow"));
             // table2.put( p );
+            table2.close();
   /*          
             HTable table = new HTable(conf, “mytable”);
 table.setAutoFlush(false);
@@ -732,9 +733,12 @@ table.put(put);
     
         public HColumnDescriptor family( String familyName, Closure familyConfig ) throws IOException {
             // column family names must end w/ a colon.
+            /*
             if ( ! familyName.endsWith(":") ) { 
                 familyName += ':'; 
             }
+            */
+            
             
             HColumnDescriptor colFamily = table.getFamily(familyName.getBytes());
             if ( colFamily == null ) { 

@@ -44,6 +44,7 @@ dependencies {
     compile 'org.apache.hbase:hbase:0.98.0-hadoop2'
     compile 'org.apache.hadoop:hadoop-common:0.23.10'
     compile 'org.apache.hadoop:hadoop-mapreduce-client-core:2.2.0'
+    
     // logging
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-api:1.7.+'
@@ -59,12 +60,6 @@ dependencies {
      
     // from Spock
     testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
-    // active jdbc
-    // compile 'org.javalite:activejdbc:1.4.1'
-    // compile 'org.javalite:activejdbc-instrumentation:1.4.1'
-
-    // MySQL
-    // compile 'mysql:mysql-connector-java:5.0.4'
 
     // optional dependencies for using Spock
     testCompile "org.hamcrest:hamcrest-core:1.2" // only necessary if Hamcrest matchers are used

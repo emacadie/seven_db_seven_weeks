@@ -71,14 +71,22 @@ class HBaseRunner {
         println( "In runStuff001" )
         def hbase = HBaseBuilder.connect()
         log.info( "hbase is a ${hbase.getClass().getName()}" )
-    }
+        hbase.create( 'myTable' ) {
+            family( 'familyOne2' ) {
+                inMemory = true
+                // bloomFilter = false
+            }
+            family 'familyTwo2' // relaxed Groovy syntax form without parens and column family defaults
+        }
+    } // end method runStuff001( log )
     
     def static runStuff002( log ) {
         // Configuration conf = HBaseConfiguration.create();
         
         Configuration conf = HBaseConfiguration.create();
         log.info( "Got the conf" )
-       
+       /*
+       this is how to create a table
         HBaseAdmin admin = new HBaseAdmin(conf);
         log.info( "got the admin" )
         HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf("people"));
@@ -91,7 +99,7 @@ class HBaseRunner {
         log.info( "added column credit card" )
         admin.createTable(tableDescriptor);
         log.info( "created table" )
-      
+        */
         // HConnection connection = HConnectionManager.createConnection( conf );
         
         HTable table = new HTable(conf, "wiki");
@@ -114,7 +122,8 @@ class HBaseRunner {
         println( "Here is options.inputFile: ${options.inputFile}" )
         
         def log = getLogger( options )
-        runStuff002( log )
+        runStuff001( log )
+        // runStuff002( log )
         def classpath = System.properties["java.class.path"]
         println( "classpath: ${classpath}" )
         
